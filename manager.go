@@ -1,4 +1,4 @@
-package manager
+package xtoken
 
 import (
 	"strings"
@@ -6,14 +6,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/julienschmidt/httprouter"
-	"github.com/oyvinddd/xtoken/claims"
-)
-
-var (
-	// access token ttl
-	fifteenMinutes = 5 * time.Minute
-	// refresh token ttl
-	ninetyDays = 24 * 90 * time.Hour
 )
 
 type (
@@ -33,7 +25,7 @@ func (manager Manager) SignedAccessToken(id uuid.UUID, email string, role Role) 
 	// token expiration set to 15 minutes 
 	expiration := now.Add(manager.accessTokenTTL)
 	// create custom claims (account) alongside predefined ones
-	accessClaims := claims.AccessClaims{
+	accessClaims := AccessTokenClaims{
 		ID: id.String(),
 		Email: email,
 		Role: role,
@@ -53,7 +45,7 @@ func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, error) {
 	// token expiration is set to 90 days
     expiration := time.Now().Add(manager.refreshTokenTTL)
 
-    refreshClaims := claims.RefreshClaims{
+    refreshClaims := RefreshTokenClaims{
         ID: id,
         RegisteredClaims: jwt.RegisteredClaims{
             ExpiresAt: jwt.NewNumericDate(expiration),
@@ -95,7 +87,7 @@ func (manager Manager) Authorize(next httprouter.Handle, role Role) httprouter.H
 
 func parseAccessToken(header string) (string, error) {
 	if header == "" {
-		return "", missingAuthHeadeError
+		return "", missingAuthHeaderError
 	}
 	prefix := "Bearer "
 	if !strings.HasPrefix(header, prefix) {

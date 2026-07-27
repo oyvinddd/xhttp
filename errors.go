@@ -1,4 +1,4 @@
-package manager
+package xtoken
 
 import (
 	"errors"

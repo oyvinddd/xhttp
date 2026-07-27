@@ -1,4 +1,4 @@
-package claims
+package xtoken
 
 import (
 	"context"
@@ -21,7 +21,7 @@ const (
 type (
 	Role int
 
-	AccessClaims struct {
+	AccessTokenClaims struct {
 		// ID the account id
 		ID uuid.UUID `json:"id"`
 		// Email the account email
@@ -32,7 +32,7 @@ type (
 		jwt.RegisteredClaims
 	}
 
-	RefreshClaims struct {
+	RefreshTokenClaims struct {
 		// ID the account id
 		ID uuid.UUID `json:"id"`
 		// Default claims
@@ -40,7 +40,7 @@ type (
 	}
 )
 
-func GetAccessClaims(ctx context.Context) (*AccessClaims, bool) {
-	claims, ok := ctx.Value(ClaimsContextKey).(*AccessClaims)
+func GetAccessTokenClaims(ctx context.Context) (*AccessTokenClaims, bool) {
+	claims, ok := ctx.Value(AccessClaimsCtxKey).(*AccessTokenClaims)
 	return claims, ok
 }
