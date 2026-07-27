@@ -1,0 +1,34 @@
+# Compiled Object files, executing files, templates
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries and artifacts
+*.test
+*.out
+*.coverprofile
+profile.cov
+
+# Dependency directories 
+# (Uncomment if you do not want to commit vendored dependencies)
+# vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Local environment variables
+.env
+.env.*
+
+# IDE and Editor specific files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
