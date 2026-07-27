@@ -44,3 +44,16 @@ func GetAccessTokenClaims(ctx context.Context) (*AccessTokenClaims, bool) {
 	claims, ok := ctx.Value(AccessClaimsCtxKey).(*AccessTokenClaims)
 	return claims, ok
 }
+
+func (r Role) HasPermission(required Role) bool {
+	switch r {
+	case UserRole:
+		return required == UserRole
+	case AdminRole:
+		return required == UserRole || required == AdminRole
+	case GlobalRole:
+		return required == UserRole || required == AdminRole || required == GlobalRole
+	default:
+		return false
+	}
+}

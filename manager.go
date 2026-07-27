@@ -62,7 +62,7 @@ func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, error) {
     return token.SignedString(manager.secret)
 }
 
-func (manager Manager) Authorize(next httprouter.Handle, role Role) httprouter.Handle {
+func (manager Manager) Authorize(next httprouter.Handle, requiredRole Role) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		tokenStr, err := parseAccessToken(r.Header.Get("Authorization"))
 		if err != nil {
@@ -81,6 +81,11 @@ func (manager Manager) Authorize(next httprouter.Handle, role Role) httprouter.H
 
 		if err != nil || !token.Valid {
 			http.Error(w, invalidAccessTokenError.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		if !accessClaims.Role.HasPermission(requiredRole) {
+			http.Error(w, insufficientRoleError.Error(), http.StatusUnauthorized)
 			return
 		}
 
