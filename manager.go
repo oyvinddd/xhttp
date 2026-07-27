@@ -1,7 +1,9 @@
 package xtoken
 
 import (
+	"time"
 	"strings"
+	"context"
 	"net/http"
 	"github.com/google/uuid"
 	"github.com/golang-jwt/jwt/v5"
@@ -16,17 +18,17 @@ type (
 	}
 )
 
-func New(secret []byte, accessTokenTTL, refreshTokenTTL int) *Manager {
+func NewManager(secret []byte, accessTokenTTL, refreshTokenTTL int) *Manager {
 	return &Manager{secret, accessTokenTTL, refreshTokenTTL}
 }
 
 func (manager Manager) SignedAccessToken(id uuid.UUID, email string, role Role) (string, error) {
 	now := time.Now()
 	// token expiration set to 15 minutes 
-	expiration := now.Add(manager.accessTokenTTL)
+	expiration := now.Add(time.Duration(manager.accessTokenTTL))
 	// create custom claims (account) alongside predefined ones
 	accessClaims := AccessTokenClaims{
-		ID: id.String(),
+		ID: id,
 		Email: email,
 		Role: role,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -43,7 +45,7 @@ func (manager Manager) SignedAccessToken(id uuid.UUID, email string, role Role) 
 func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, error) {
 	now := time.Now()
 	// token expiration is set to 90 days
-    expiration := time.Now().Add(manager.refreshTokenTTL)
+    expiration := time.Now().Add(time.Duration(manager.refreshTokenTTL))
 
     refreshClaims := RefreshTokenClaims{
         ID: id,
@@ -62,11 +64,11 @@ func (manager Manager) Authorize(next httprouter.Handle, role Role) httprouter.H
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		tokenStr, err := parseAccessToken(r.Header.Get("Authorization"))
 		if err != nil {
-			http.Error(w, err, http.StatusUnauthorized)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		accessClaims := new(AccessClaims)
+		accessClaims := new(AccessTokenClaims)
 
 		token, err := jwt.ParseWithClaims(tokenStr, accessClaims, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -76,11 +78,11 @@ func (manager Manager) Authorize(next httprouter.Handle, role Role) httprouter.H
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, invalidAccessTokenError, http.StatusUnauthorized)
+			http.Error(w, invalidAccessTokenError.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), claims.AccessClaimsCtxKey, accessClaims)
+		ctx := context.WithValue(r.Context(), AccessClaimsCtxKey, accessClaims)
 		next(w, r.WithContext(ctx), ps)
 	}
 }
@@ -93,6 +95,6 @@ func parseAccessToken(header string) (string, error) {
 	if !strings.HasPrefix(header, prefix) {
 		return "", invalidAuthHeaderError
 	}
-	return strings.TrimPrefix(header, prefix)
+	return strings.TrimPrefix(header, prefix), nil
 }
 
