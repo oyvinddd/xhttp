@@ -25,7 +25,8 @@ func NewManager(secret []byte, accessTokenTTL, refreshTokenTTL int) *Manager {
 func (manager Manager) SignedAccessToken(id uuid.UUID, email string, role Role) (string, error) {
 	now := time.Now()
 	// token expiration set to 15 minutes 
-	expiration := now.Add(time.Duration(manager.accessTokenTTL))
+	ttl := time.Duration(manager.accessTokenTTL) * time.Minute
+	expiration := now.Add(ttl)
 	// create custom claims (account) alongside predefined ones
 	accessClaims := AccessTokenClaims{
 		ID: id,
@@ -44,8 +45,9 @@ func (manager Manager) SignedAccessToken(id uuid.UUID, email string, role Role) 
 
 func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, error) {
 	now := time.Now()
+	ttl := time.Duration(manager.refreshTokenTTL) * 24 * time.Hour
 	// token expiration is set to 90 days
-    expiration := time.Now().Add(time.Duration(manager.refreshTokenTTL))
+    expiration := time.Now().Add(ttl)
 
     refreshClaims := RefreshTokenClaims{
         ID: id,
