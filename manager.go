@@ -43,7 +43,7 @@ func (manager Manager) SignedAccessToken(id uuid.UUID, email string, role Role) 
     return token.SignedString(manager.secret)
 }
 
-func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, error) {
+func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, time.Time, error) {
 	now := time.Now()
 	ttl := time.Duration(manager.refreshTokenTTL) * 24 * time.Hour
 	// token expiration is set to 90 days
@@ -59,7 +59,11 @@ func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, error) {
     }
 
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-    return token.SignedString(manager.secret)
+	signedTokenString, err := token.SignedString(manager.secret)
+	if err != nil {
+		return "", time.Now(), err
+	}
+	return signedTokenString, expiration, nil
 }
 
 func (manager Manager) Authorize(next httprouter.Handle, requiredRole Role) httprouter.Handle {
