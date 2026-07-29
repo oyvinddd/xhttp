@@ -2,12 +2,8 @@ package xtoken
 
 import (
 	"time"
-	"strings"
-	"context"
-	"net/http"
 	"github.com/google/uuid"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/julienschmidt/httprouter"
 )
 
 type (
@@ -64,48 +60,5 @@ func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, time.Time, erro
 		return "", time.Now(), err
 	}
 	return signedTokenString, expiration, nil
-}
-
-func (manager Manager) Authorize(next httprouter.Handle, requiredRole Role) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		tokenStr, err := parseAccessToken(r.Header.Get("Authorization"))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		accessClaims := new(AccessTokenClaims)
-
-		token, err := jwt.ParseWithClaims(tokenStr, accessClaims, func(token *jwt.Token) (any, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, unexpectedSigningError
-			}
-			return manager.secret, nil
-		})
-
-		if err != nil || !token.Valid {
-			http.Error(w, invalidAccessTokenError.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		if !accessClaims.Role.HasPermission(requiredRole) {
-			http.Error(w, insufficientRoleError.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), AccessClaimsCtxKey, accessClaims)
-		next(w, r.WithContext(ctx), ps)
-	}
-}
-
-func parseAccessToken(header string) (string, error) {
-	if header == "" {
-		return "", missingAuthHeaderError
-	}
-	prefix := "Bearer "
-	if !strings.HasPrefix(header, prefix) {
-		return "", invalidAuthHeaderError
-	}
-	return strings.TrimPrefix(header, prefix), nil
 }
 
