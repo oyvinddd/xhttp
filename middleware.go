@@ -21,7 +21,7 @@ func (manager Manager) Authorize(next http.Handler, requiredRole Role) http.Hand
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, UnexpectedSigningError
 			}
-			return manager.secret, nil
+			return manager.Secret, nil
 		})
 
 		if err != nil || !token.Valid {

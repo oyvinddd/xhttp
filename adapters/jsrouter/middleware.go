@@ -1,12 +1,14 @@
 package jsrouter
 
 import (
+	"context"
 	"net/http"
 	"github.com/oyvinddd/xtoken"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/julienschmidt/httprouter"
 )
 
-func Authorize(manager xtoken.Manager, next httprouter.Handle, requiredRole Role) httprouter.Handle {
+func Authorize(manager xtoken.Manager, next httprouter.Handle, requiredRole xtoken.Role) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		tokenStr, err := xtoken.ParseAccessToken(r.Header.Get("Authorization"))
 		if err != nil {
@@ -14,13 +16,13 @@ func Authorize(manager xtoken.Manager, next httprouter.Handle, requiredRole Role
 			return
 		}
 
-		accessClaims := new(AccessTokenClaims)
+		accessClaims := new(xtoken.AccessTokenClaims)
 
 		token, err := jwt.ParseWithClaims(tokenStr, accessClaims, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, xtoken.UnexpectedSigningError
 			}
-			return manager.secret, nil
+			return manager.Secret, nil
 		})
 
 		if err != nil || !token.Valid {

@@ -8,7 +8,7 @@ import (
 
 type (
 	Manager struct {
-		secret []byte
+		Secret []byte
 		accessTokenTTL int
 		refreshTokenTTL int
 	}
@@ -36,7 +36,7 @@ func (manager Manager) SignedAccessToken(id uuid.UUID, email string, role Role) 
 	}
 	// Create a new token object, specifying signing method and the claims we would like it to contain
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-    return token.SignedString(manager.secret)
+    return token.SignedString(manager.Secret)
 }
 
 func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, time.Time, error) {
@@ -55,7 +55,7 @@ func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, time.Time, erro
     }
 
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	signedTokenString, err := token.SignedString(manager.secret)
+	signedTokenString, err := token.SignedString(manager.Secret)
 	if err != nil {
 		return "", time.Now(), err
 	}
