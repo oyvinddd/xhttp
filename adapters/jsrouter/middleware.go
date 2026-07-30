@@ -22,7 +22,7 @@ func Authorize(manager xtoken.Manager, next httprouter.Handle, requiredRole xtok
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, xtoken.UnexpectedSigningError
 			}
-			return manager.Secret, nil
+			return xtoken.GetHMACSecret(), nil
 		})
 
 		if err != nil || !token.Valid {

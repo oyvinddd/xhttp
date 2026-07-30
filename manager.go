@@ -69,3 +69,7 @@ func SetHMACSecret(secret string) {
 	hmacSecret = []byte(secret)
 }
 
+func GetHMACSecret() []byte {
+	return hmacSecret
+}
+
