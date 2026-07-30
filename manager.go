@@ -6,16 +6,19 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var (
+	hmacSecret []byte 
+)
+
 type (
 	Manager struct {
-		Secret []byte
 		accessTokenTTL int
 		refreshTokenTTL int
 	}
 )
 
-func NewManager(secret []byte, accessTokenTTL, refreshTokenTTL int) *Manager {
-	return &Manager{secret, accessTokenTTL, refreshTokenTTL}
+func NewManager(accessTokenTTL, refreshTokenTTL int) *Manager {
+	return &Manager{accessTokenTTL, refreshTokenTTL}
 }
 
 func (manager Manager) SignedAccessToken(id uuid.UUID, email string, role Role) (string, error) {
@@ -36,7 +39,7 @@ func (manager Manager) SignedAccessToken(id uuid.UUID, email string, role Role) 
 	}
 	// Create a new token object, specifying signing method and the claims we would like it to contain
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-    return token.SignedString(manager.Secret)
+    return token.SignedString(hmacSecret)
 }
 
 func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, time.Time, error) {
@@ -55,10 +58,14 @@ func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, time.Time, erro
     }
 
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	signedTokenString, err := token.SignedString(manager.Secret)
+	signedTokenString, err := token.SignedString(hmacSecret)
 	if err != nil {
 		return "", time.Now(), err
 	}
 	return signedTokenString, expiration, nil
+}
+
+func SetHMACSecret(secret string) {
+	hmacSecret = []byte(secret)
 }
 
