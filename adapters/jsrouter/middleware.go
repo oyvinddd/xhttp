@@ -8,7 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func Authorize(manager xtoken.Manager, next httprouter.Handle, requiredRole xtoken.Role) httprouter.Handle {
+func Authorize(next httprouter.Handle, requiredRole xtoken.Role) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		tokenStr, err := xtoken.ParseAccessToken(r.Header.Get("Authorization"))
 		if err != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func (manager Manager) Authorize(next http.Handler, requiredRole Role) http.Handler {
+func Authorize(next http.Handler, requiredRole Role) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenStr, err := ParseAccessToken(r.Header.Get("Authorization"))
 		if err != nil {
