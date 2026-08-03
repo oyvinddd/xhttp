@@ -10,5 +10,6 @@ var (
 	InvalidAccessTokenError = errors.New("invalid access token")
 	UnexpectedSigningError = errors.New("unexpected signing method")
 	InsufficientRoleError = errors.New("insufficient role")
+	InvalidServiceKeyError = errors.New("invalid service key")
 )
 
