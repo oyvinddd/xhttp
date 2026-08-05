@@ -24,6 +24,8 @@ type (
 	AccessTokenClaims struct {
 		// ID the account id
 		ID uuid.UUID `json:"id"`
+		// OrgID the organization id
+		OrgID *uuid.UUID `json:"org_id"`
 		// Email the account email
 		Email string `json:"email"`
 		// Role the account role
