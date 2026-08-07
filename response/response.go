@@ -27,5 +27,5 @@ func JSON(w http.ResponseWriter, data interface{}, statusCode int) {
 }
 
 func Error(w http.ResponseWriter, err error, statusCode int) {
-	JSON(w, newResponseError(statusCode, err), statusCode)
+	JSON(w, newResponseError(err, statusCode), statusCode)
 }
