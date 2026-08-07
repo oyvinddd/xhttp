@@ -47,6 +47,10 @@ func GetAccessTokenClaims(ctx context.Context) (*AccessTokenClaims, bool) {
 	return claims, ok
 }
 
+func (a AccessTokenClaims) HasOrganization() bool {
+	return a.OrgID != nil
+}
+
 func (r Role) HasPermission(required Role) bool {
 	switch r {
 	case UserRole:
