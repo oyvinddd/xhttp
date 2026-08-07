@@ -1,6 +1,6 @@
-module github.com/oyvinddd/xtoken
+module github.com/oyvinddd/xhttp
 
-go 1.25
+go 1.25.11
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect

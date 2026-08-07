@@ -1,4 +1,4 @@
-package xtoken
+package xhttp
 
 import (
 	"net/http"
