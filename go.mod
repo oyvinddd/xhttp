@@ -1,4 +1,4 @@
-module github.com/oyvinddd/xhttp
+module github.com/oyvinddd/xhttp/v2
 
 go 1.25.11
 
