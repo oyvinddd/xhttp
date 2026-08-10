@@ -5,11 +5,12 @@ import (
 )
 
 var (
-	MissingAuthHeaderError = errors.New("missing authorization header")
-	InvalidAuthHeaderError = errors.New("invalid authorization header")
-	InvalidAccessTokenError = errors.New("invalid access token")
-	UnexpectedSigningError = errors.New("unexpected signing method")
-	InsufficientRoleError = errors.New("insufficient role")
-	InvalidServiceKeyError = errors.New("invalid service key")
+	ErrMissingAuthHeader 	= errors.New("missing authorization header")
+	ErrInvalidAuthHeader 	= errors.New("invalid authorization header")
+	ErrInvalidAccessToken 	= errors.New("invalid access token")
+	ErrUnexpectedSigning 	= errors.New("unexpected signing method")
+	ErrInsufficientRole 	= errors.New("insufficient role")
+	ErrInvalidServiceKey 	= errors.New("invalid service key")
+	ErrMissingOrganization	= errors.New("missing organization")
 )
 

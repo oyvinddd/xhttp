@@ -47,6 +47,25 @@ func GetAccessTokenClaims(ctx context.Context) (*AccessTokenClaims, bool) {
 	return claims, ok
 }
 
+func GetAccountIDFromClaims(ctx context.Context) (uuid.UUID, error) {
+	claims, ok := GetAccessTokenClaims(ctx)
+	if !ok {
+		return uuid.Nil, ErrInvalidAccessToken
+	}
+	return claims.ID, nil
+}
+
+func GetOrgIDFromClaims(ctx context.Context) (uuid.UUID, error) {
+	claims, ok := GetAccessTokenClaims(ctx)
+	if !ok {
+		return uuid.Nil, ErrInvalidAccessToken
+	}
+	if claims.OrgID == nil {
+		return uuid.Nil, ErrMissingOrganization
+	}
+	return *claims.OrgID, nil
+}
+
 func (a AccessTokenClaims) HasOrganization() bool {
 	return a.OrgID != nil
 }

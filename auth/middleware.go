@@ -24,18 +24,18 @@ func Authorize(next http.Handler, requiredRole Role) http.Handler {
 
 		token, err := jwt.ParseWithClaims(tokenStr, accessClaims, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, UnexpectedSigningError
+				return nil, ErrUnexpectedSigning
 			}
 			return hmacSecret, nil
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, InvalidAccessTokenError.Error(), http.StatusUnauthorized)
+			http.Error(w, ErrInvalidAccessToken.Error(), http.StatusUnauthorized)
 			return
 		}
 
 		if !accessClaims.Role.HasPermission(requiredRole) {
-			http.Error(w, InsufficientRoleError.Error(), http.StatusUnauthorized)
+			http.Error(w, ErrInsufficientRole.Error(), http.StatusUnauthorized)
 			return
 		}
 
@@ -48,7 +48,7 @@ func RequireServiceKey(key string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get(serviceKeyHeader) != key {
-				http.Error(w, InvalidServiceKeyError.Error(), http.StatusUnauthorized)
+				http.Error(w, ErrInvalidServiceKey.Error(), http.StatusUnauthorized)
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -58,11 +58,11 @@ func RequireServiceKey(key string) func(http.Handler) http.Handler {
 
 func ParseAccessToken(header string) (string, error) {
 	if header == "" {
-		return "", MissingAuthHeaderError
+		return "", ErrMissingAuthHeader
 	}
 	prefix := "Bearer "
 	if !strings.HasPrefix(header, prefix) {
-		return "", InvalidAuthHeaderError
+		return "", ErrInvalidAuthHeader
 	}
 	return strings.TrimPrefix(header, prefix), nil
 }

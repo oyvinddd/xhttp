@@ -20,18 +20,18 @@ func Authorize(next httprouter.Handle, requiredRole auth.Role) httprouter.Handle
 
 		token, err := jwt.ParseWithClaims(tokenStr, accessClaims, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, auth.UnexpectedSigningError
+				return nil, auth.ErrUnexpectedSigning
 			}
 			return auth.GetHMACSecret(), nil
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, auth.InvalidAccessTokenError.Error(), http.StatusUnauthorized)
+			http.Error(w, auth.ErrInvalidAccessToken.Error(), http.StatusUnauthorized)
 			return
 		}
 
 		if !accessClaims.Role.HasPermission(requiredRole) {
-			http.Error(w, auth.InsufficientRoleError.Error(), http.StatusUnauthorized)
+			http.Error(w, auth.ErrInsufficientRole.Error(), http.StatusUnauthorized)
 			return
 		}
 
