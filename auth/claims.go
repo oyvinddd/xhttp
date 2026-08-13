@@ -66,6 +66,26 @@ func GetOrgIDFromClaims(ctx context.Context) (uuid.UUID, error) {
 	return *claims.OrgID, nil
 }
 
+func ParseRefreshToken(tokenStr string) (*RefreshTokenClaims, error) {
+	refreshClaims := new(RefreshTokenClaims)
+	token, err := jwt.ParseWithClaims(tokenStr, refreshClaims, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, ErrUnexpectedSigning
+		}
+		return hmacSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*RefreshTokenClaims)
+	if !ok {
+		return nil, ErrInvalidRefreshToken
+	}
+	return claims, nil
+}
+
 func (a AccessTokenClaims) HasOrganization() bool {
 	return a.OrgID != nil
 }
