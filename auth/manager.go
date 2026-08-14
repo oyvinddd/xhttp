@@ -17,10 +17,14 @@ type (
 	}
 
 	Token struct {
+		// AccountID the token owner
+		AccountID uuid.UUID `json:"-"`
+		// SessionID the unique id for the token (jti)
+		SessionID uuid.UUID `json:"-"`
 		// Value the actual token itself
 		Value string `json:"token"`
 		// ExpiresAt timestamp for token expiration 
-		ExpiresAt time.Time `json:"expiration"`
+		ExpiresAt time.Time `json:"expires_at"`
 	}
 )
 
@@ -51,7 +55,7 @@ func (m *Manager) SignedAccessToken(id uuid.UUID, orgID *uuid.UUID, email string
 	if err != nil {
 		return Token{}, err
 	}
-	return Token{tokenStr, exp}, nil
+	return Token{AccountID: id, Value: tokenStr, ExpiresAt: exp}, nil
 }
 
 func (m *Manager) SignedRefreshToken(id uuid.UUID) (Token, error) {
@@ -59,13 +63,14 @@ func (m *Manager) SignedRefreshToken(id uuid.UUID) (Token, error) {
 	ttl := time.Duration(m.refreshTokenTTL) * 24 * time.Hour
 	// token expiration is set to 90 days
     exp := now.Add(ttl)
+	jti := uuid.New()
 
     refreshClaims := RefreshTokenClaims{
         ID: id,
         RegisteredClaims: jwt.RegisteredClaims{
             ExpiresAt: jwt.NewNumericDate(exp),
             IssuedAt:  jwt.NewNumericDate(now),
-            ID:        uuid.NewString(), // jti -- the session id
+            ID:        jti.String(), // the session id
         },
     }
 
@@ -74,7 +79,7 @@ func (m *Manager) SignedRefreshToken(id uuid.UUID) (Token, error) {
 	if err != nil {
 		return Token{}, err
 	}
-	return Token{tokenStr, exp}, nil
+	return Token{AccountID: id, SessionID: jti, Value: tokenStr, ExpiresAt: exp}, nil
 }
 
 func (m *Manager) RotateRefreshToken(oldRefreshToken string) (Token, uuid.UUID, error) {
