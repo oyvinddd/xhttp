@@ -75,8 +75,12 @@ func ParseRefreshToken(tokenStr string) (*RefreshTokenClaims, error) {
 		return hmacSecret, nil
 	})
 
-	if err != nil || !token.Valid {
+	if err != nil {
 		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, ErrInvalidRefreshToken
 	}
 
 	claims, ok := token.Claims.(*RefreshTokenClaims)

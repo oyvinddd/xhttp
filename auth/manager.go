@@ -15,16 +15,23 @@ type (
 		accessTokenTTL int
 		refreshTokenTTL int
 	}
+
+	Token struct {
+		// Value the actual token itself
+		Value string `json:"token"`
+		// ExpiresAt timestamp for token expiration 
+		ExpiresAt time.Time `json:"expiration"`
+	}
 )
 
 func NewManager(accessTokenTTL, refreshTokenTTL int) *Manager {
 	return &Manager{accessTokenTTL, refreshTokenTTL}
 }
 
-func (manager Manager) SignedAccessToken(id uuid.UUID, orgID *uuid.UUID, email string, role Role) (string, error) {
+func (m *Manager) SignedAccessToken(id uuid.UUID, orgID *uuid.UUID, email string, role Role) (Token, error) {
 	now := time.Now()
 	// token expiration set to 15 minutes 
-	ttl := time.Duration(manager.accessTokenTTL) * time.Minute
+	ttl := time.Duration(m.accessTokenTTL) * time.Minute
 	exp := now.Add(ttl)
 	// create custom claims (account) alongside predefined ones
 	accessClaims := AccessTokenClaims{
@@ -40,12 +47,16 @@ func (manager Manager) SignedAccessToken(id uuid.UUID, orgID *uuid.UUID, email s
 	}
 	// Create a new token object, specifying signing method and the claims we would like it to contain
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-    return token.SignedString(hmacSecret)
+	tokenStr, err := token.SignedString(hmacSecret)
+	if err != nil {
+		return Token{}, err
+	}
+	return Token{tokenStr, exp}, nil
 }
 
-func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, time.Time, error) {
+func (m *Manager) SignedRefreshToken(id uuid.UUID) (Token, error) {
 	now := time.Now()
-	ttl := time.Duration(manager.refreshTokenTTL) * 24 * time.Hour
+	ttl := time.Duration(m.refreshTokenTTL) * 24 * time.Hour
 	// token expiration is set to 90 days
     exp := now.Add(ttl)
 
@@ -59,11 +70,19 @@ func (manager Manager) SignedRefreshToken(id uuid.UUID) (string, time.Time, erro
     }
 
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	signedTokenString, err := token.SignedString(hmacSecret)
+	tokenStr, err := token.SignedString(hmacSecret)
 	if err != nil {
-		return "", time.Now(), err
+		return Token{}, err
 	}
-	return signedTokenString, exp, nil
+	return Token{tokenStr, exp}, nil
+}
+
+func (m *Manager) RotateRefreshToken(oldRefreshToken string) (Token, error) {
+	claims, err := ParseRefreshToken(oldRefreshToken)
+	if err != nil {
+		return Token{}, err
+	}
+	return m.SignedRefreshToken(claims.ID)
 }
 
 func SetHMACSecret(secret string) {
