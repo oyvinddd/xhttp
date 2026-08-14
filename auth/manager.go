@@ -65,7 +65,7 @@ func (m *Manager) SignedRefreshToken(id uuid.UUID) (Token, error) {
         RegisteredClaims: jwt.RegisteredClaims{
             ExpiresAt: jwt.NewNumericDate(exp),
             IssuedAt:  jwt.NewNumericDate(now),
-            ID:        uuid.NewString(), // jti
+            ID:        uuid.NewString(), // jti -- the session id
         },
     }
 
@@ -77,12 +77,20 @@ func (m *Manager) SignedRefreshToken(id uuid.UUID) (Token, error) {
 	return Token{tokenStr, exp}, nil
 }
 
-func (m *Manager) RotateRefreshToken(oldRefreshToken string) (Token, error) {
+func (m *Manager) RotateRefreshToken(oldRefreshToken string) (Token, uuid.UUID, error) {
 	claims, err := ParseRefreshToken(oldRefreshToken)
 	if err != nil {
-		return Token{}, err
+		return Token{}, uuid.Nil, err
 	}
-	return m.SignedRefreshToken(claims.ID)
+	jti, err := uuid.Parse(claims.RegisteredClaims.ID)
+	if err != nil {
+		return Token{}, uuid.Nil, err
+	}
+	token, err := m.SignedRefreshToken(claims.ID)
+	if err != nil {
+		return Token{}, uuid.Nil, err
+	}
+	return token, jti, nil
 }
 
 func SetHMACSecret(secret string) {
