@@ -1,10 +1,10 @@
 package decode
 
 import (
-	"io"
-	"errors"
-	"net/http"
 	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
 )
 
 var (
@@ -23,9 +23,8 @@ func JSON[T any](r *http.Request) (T, error) {
 	}
 
 	if err := dec.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
-    	return data, ErrTrailingData
+		return data, ErrTrailingData
 	}
 
 	return data, nil
 }
-

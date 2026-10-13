@@ -18,4 +18,3 @@ func Connect(ctx context.Context, cfg Config) (*pgxpool.Pool, error) {
 	}
 	return db, nil
 }
-

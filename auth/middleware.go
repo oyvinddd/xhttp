@@ -1,15 +1,15 @@
 package auth
 
 import (
-	"net/http"
-	"strings"
 	"context"
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
+	"strings"
 )
 
 const (
 	authorizationHeader = "Authorization"
-	serviceKeyHeader = "X-Service-Key"
+	serviceKeyHeader    = "X-Service-Key"
 )
 
 func Authorize(next http.Handler, requiredRole Role) http.Handler {
@@ -66,4 +66,3 @@ func ParseAccessToken(header string) (string, error) {
 	}
 	return strings.TrimPrefix(header, prefix), nil
 }
-

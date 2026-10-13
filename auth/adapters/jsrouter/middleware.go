@@ -2,10 +2,10 @@ package jsrouter
 
 import (
 	"context"
-	"net/http"
-	auth "github.com/oyvinddd/xhttp/auth"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/julienschmidt/httprouter"
+	auth "github.com/oyvinddd/xhttp/auth"
+	"net/http"
 )
 
 func Authorize(next httprouter.Handle, requiredRole auth.Role) httprouter.Handle {
@@ -39,4 +39,3 @@ func Authorize(next httprouter.Handle, requiredRole auth.Role) httprouter.Handle
 		next(w, r.WithContext(ctx), ps)
 	}
 }
-

@@ -1,18 +1,18 @@
 package auth
 
 import (
-	"time"
-	"github.com/google/uuid"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"time"
 )
 
 var (
-	hmacSecret []byte 
+	hmacSecret []byte
 )
 
 type (
 	Manager struct {
-		accessTokenTTL int
+		accessTokenTTL  int
 		refreshTokenTTL int
 	}
 
@@ -23,7 +23,7 @@ type (
 		SessionID uuid.UUID `json:"-"`
 		// Value the actual token itself
 		Value string `json:"token"`
-		// ExpiresAt timestamp for token expiration 
+		// ExpiresAt timestamp for token expiration
 		ExpiresAt time.Time `json:"expires_at"`
 	}
 )
@@ -34,23 +34,23 @@ func NewManager(accessTokenTTL, refreshTokenTTL int) *Manager {
 
 func (m *Manager) SignedAccessToken(id uuid.UUID, orgID *uuid.UUID, email string, role Role) (Token, error) {
 	now := time.Now()
-	// token expiration set to 15 minutes 
+	// token expiration set to 15 minutes
 	ttl := time.Duration(m.accessTokenTTL) * time.Minute
 	exp := now.Add(ttl)
 	// create custom claims (account) alongside predefined ones
 	accessClaims := AccessTokenClaims{
-		ID: id,
+		ID:    id,
 		OrgID: orgID,
 		Email: email,
-		Role: role,
+		Role:  role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: 	jwt.NewNumericDate(exp),
-			IssuedAt: 	jwt.NewNumericDate(now),
-			Subject: 	id.String(),
+			ExpiresAt: jwt.NewNumericDate(exp),
+			IssuedAt:  jwt.NewNumericDate(now),
+			Subject:   id.String(),
 		},
 	}
 	// Create a new token object, specifying signing method and the claims we would like it to contain
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
 	tokenStr, err := token.SignedString(hmacSecret)
 	if err != nil {
 		return Token{}, err
@@ -62,19 +62,19 @@ func (m *Manager) SignedRefreshToken(id uuid.UUID) (Token, error) {
 	now := time.Now()
 	ttl := time.Duration(m.refreshTokenTTL) * 24 * time.Hour
 	// token expiration is set to 90 days
-    exp := now.Add(ttl)
+	exp := now.Add(ttl)
 	jti := uuid.New()
 
-    refreshClaims := RefreshTokenClaims{
-        ID: id,
-        RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(exp),
-            IssuedAt:  jwt.NewNumericDate(now),
-            ID:        jti.String(), // the session id
-        },
-    }
+	refreshClaims := RefreshTokenClaims{
+		ID: id,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(exp),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ID:        jti.String(), // the session id
+		},
+	}
 
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
 	tokenStr, err := token.SignedString(hmacSecret)
 	if err != nil {
 		return Token{}, err
@@ -105,4 +105,3 @@ func SetHMACSecret(secret string) {
 func GetHMACSecret() []byte {
 	return hmacSecret
 }
-
